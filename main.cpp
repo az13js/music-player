@@ -403,6 +403,32 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
   }
 
+  if (lpCmdLine && lpCmdLine[0] != '\0') {
+    std::wstring cmdLine;
+    int len = MultiByteToWideChar(CP_ACP, 0, lpCmdLine, -1, NULL, 0);
+    if (len > 0) {
+      wchar_t* wideCmdLine = new wchar_t[len];
+      MultiByteToWideChar(CP_ACP, 0, lpCmdLine, -1, wideCmdLine, len);
+      cmdLine = wideCmdLine;
+      delete[] wideCmdLine;
+    }
+    if (!cmdLine.empty()) {
+      if (cmdLine.front() == L'"' && cmdLine.back() == L'"') {
+        cmdLine = cmdLine.substr(1, cmdLine.length() - 2);
+      }
+      DWORD attr = GetFileAttributes(cmdLine.c_str());
+      if (attr != INVALID_FILE_ATTRIBUTES && !(attr & FILE_ATTRIBUTE_DIRECTORY)) {
+        if (IsAudioFile(cmdLine)) {
+          g_playlist.clear();
+          g_playlist.push_back(cmdLine);
+          g_currentIndex = 0;
+          RefreshPlaylist();
+          PlayFile(cmdLine, hwnd, 0);
+        }
+      }
+    }
+  }
+
   ShowWindow(hwnd, nCmdShow);
 
   MSG msg = {};
