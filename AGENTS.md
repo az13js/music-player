@@ -18,7 +18,7 @@ rm -rf build; cmake -B build; cmake --build build
 
 ## Dependencies
 
-- Windows native APIs only (user32, gdi32, winmm, comdlg32, comctl32)
+- Windows native APIs only (user32, gdi32, winmm, comdlg32, comctl32, ole32, shell32)
 - No external libraries
 
 ## Key Files
