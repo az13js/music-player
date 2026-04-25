@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.10)
+project(MusicPlayer)
+add_executable(MusicPlayer WIN32 main.cpp)
+target_compile_definitions(MusicPlayer PRIVATE UNICODE _UNICODE)
+target_compile_options(MusicPlayer PRIVATE /utf-8)
+target_link_libraries(MusicPlayer PRIVATE user32 gdi32 winmm comdlg32 comctl32 ole32 shell32)
