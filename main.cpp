@@ -384,15 +384,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   CreateWindowEx(0, L"STATIC", L"搜索:",
     WS_CHILD | WS_VISIBLE,
-    20, 53, 40, 20, hwnd, NULL, hInstance, NULL);
+    20, 78, 40, 20, hwnd, NULL, hInstance, NULL);
 
   g_hwndSearch = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", NULL,
     WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL,
-    60, 50, 250, 22, hwnd, (HMENU)ID_SEARCH, hInstance, NULL);
+    60, 75, 250, 22, hwnd, (HMENU)ID_SEARCH, hInstance, NULL);
 
   g_hwndListbox = CreateWindowEx(WS_EX_CLIENTEDGE, L"LISTBOX", NULL,
     WS_CHILD | WS_VISIBLE | LBS_NOTIFY | WS_VSCROLL | LBS_NOINTEGRALHEIGHT,
-    20, 80, 590, 280, hwnd, (HMENU)ID_LISTBOX, hInstance, NULL);
+    20, 105, 590, 255, hwnd, (HMENU)ID_LISTBOX, hInstance, NULL);
 
   const wchar_t* envFolder = _wgetenv(L"MUSIC_FOLDER");
   if (envFolder) {
