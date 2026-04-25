@@ -394,15 +394,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     WS_CHILD | WS_VISIBLE | LBS_NOTIFY | WS_VSCROLL | LBS_NOINTEGRALHEIGHT,
     20, 105, 590, 255, hwnd, (HMENU)ID_LISTBOX, hInstance, NULL);
 
-  const wchar_t* envFolder = _wgetenv(L"MUSIC_FOLDER");
-  if (envFolder) {
-    std::wstring folderPath = envFolder;
-    DWORD attr = GetFileAttributes(folderPath.c_str());
-    if (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY)) {
-      LoadFolder(folderPath);
-    }
-  }
-
   if (lpCmdLine && lpCmdLine[0] != '\0') {
     std::wstring cmdLine;
     int len = MultiByteToWideChar(CP_ACP, 0, lpCmdLine, -1, NULL, 0);
@@ -425,6 +416,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
           RefreshPlaylist();
           PlayFile(cmdLine, hwnd, 0);
         }
+      }
+    }
+  } else {
+    const wchar_t* envFolder = _wgetenv(L"MUSIC_FOLDER");
+    if (envFolder) {
+      std::wstring folderPath = envFolder;
+      DWORD attr = GetFileAttributes(folderPath.c_str());
+      if (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY)) {
+        LoadFolder(folderPath);
       }
     }
   }
