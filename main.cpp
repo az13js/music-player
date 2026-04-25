@@ -304,7 +304,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
   InitCommonControls();
   CoInitialize(NULL);
-  
+
   const wchar_t CLASS_NAME[] = L"MyWindowClass";
 
   WNDCLASS wc = {};
@@ -357,6 +357,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   g_hwndListbox = CreateWindowEx(WS_EX_CLIENTEDGE, L"LISTBOX", NULL,
     WS_CHILD | WS_VISIBLE | LBS_NOTIFY | WS_VSCROLL | LBS_NOINTEGRALHEIGHT,
     20, 80, 590, 300, hwnd, (HMENU)ID_LISTBOX, hInstance, NULL);
+
+  const wchar_t* envFolder = _wgetenv(L"MUSIC_FOLDER");
+  if (envFolder) {
+    std::wstring folderPath = envFolder;
+    DWORD attr = GetFileAttributes(folderPath.c_str());
+    if (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY)) {
+      LoadFolder(folderPath);
+    }
+  }
 
   ShowWindow(hwnd, nCmdShow);
 
