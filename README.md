@@ -12,6 +12,8 @@
 - 上一首/下一首切换
 - 自动播放下一首
 - 双击列表项播放
+- 搜索框过滤歌曲
+- 支持通过环境变量自动加载播放列表
 
 ## 截图
 
@@ -19,11 +21,17 @@
 
 ## 编译
 
+Debug 版本：
 ```powershell
-rm -rf build; cmake -B build; cmake --build build
+rm -rf build; cmake -B build; cmake --build build --config Debug
 ```
+输出：`build\Debug\MusicPlayer.exe`
 
-输出：`build\Debug\MusicPlayer.exe` 或 `build\Release\MusicPlayer.exe`
+Release 版本：
+```powershell
+rm -rf build; cmake -B build; cmake --build build --config Release
+```
+输出：`build\Release\MusicPlayer.exe`
 
 ## 环境
 
@@ -34,3 +42,12 @@ rm -rf build; cmake -B build; cmake --build build
 ## 依赖
 
 Windows 原生 API：user32, gdi32, winmm, comdlg32, comctl32, ole32, shell32
+
+## 环境变量
+
+- `MUSIC_FOLDER`: 设置后程序启动时自动加载该文件夹下的音频文件作为播放列表
+
+```powershell
+$env:MUSIC_FOLDER="C:\Users\YourName\Music"
+build\Debug\MusicPlayer.exe
+```

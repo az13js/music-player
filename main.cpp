@@ -17,11 +17,14 @@
 #define ID_TRACKBAR 105
 #define ID_TIMER 106
 #define ID_LISTBOX 110
+#define ID_SEARCH 111
 
 static std::wstring g_filePath = L"";
 static HWND g_hwndTrackbar = NULL;
 static HWND g_hwndTimeLabel = NULL;
 static HWND g_hwndListbox = NULL;
+static HWND g_hwndSearch = NULL;
+static std::wstring g_searchFilter = L"";
 static int g_totalLength = 0;
 static bool g_isPlaying = false;
 static bool g_isDragging = false;
@@ -56,13 +59,21 @@ static bool IsAudioFile(const std::wstring& path) {
   return false;
 }
 
+static bool ContainsIgnoreCase(const std::wstring& str, const std::wstring& sub) {
+  if (sub.empty()) return true;
+  std::wstring lowerStr, lowerSub;
+  for (wchar_t c : str) lowerStr += towlower(c);
+  for (wchar_t c : sub) lowerSub += towlower(c);
+  return lowerStr.find(lowerSub) != std::wstring::npos;
+}
+
 static void RefreshPlaylist() {
   SendMessage(g_hwndListbox, LB_RESETCONTENT, 0, 0);
   for (size_t i = 0; i < g_playlist.size(); i++) {
-    SendMessage(g_hwndListbox, LB_ADDSTRING, 0, (LPARAM)GetFileName(g_playlist[i]).c_str());
-  }
-  if (g_currentIndex >= 0 && g_currentIndex < (int)g_playlist.size()) {
-    SendMessage(g_hwndListbox, LB_SETCURSEL, g_currentIndex, 0);
+    std::wstring fileName = GetFileName(g_playlist[i]);
+    if (g_searchFilter.empty() || ContainsIgnoreCase(fileName, g_searchFilter)) {
+      SendMessage(g_hwndListbox, LB_ADDSTRING, 0, (LPARAM)fileName.c_str());
+    }
   }
 }
 
@@ -238,9 +249,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     case ID_LISTBOX: {
       if (wmEvent == LBN_DBLCLK) {
         int sel = (int)SendMessage(g_hwndListbox, LB_GETCURSEL, 0, 0);
-        if (sel != LB_ERR && sel >= 0 && sel < (int)g_playlist.size()) {
-          PlayFile(g_playlist[sel], hwnd, sel);
+        if (sel != LB_ERR && sel >= 0) {
+          wchar_t buf[256] = {};
+          SendMessage(g_hwndListbox, LB_GETTEXT, sel, (LPARAM)buf);
+          std::wstring selectedName = buf;
+          for (size_t i = 0; i < g_playlist.size(); i++) {
+            if (GetFileName(g_playlist[i]) == selectedName) {
+              PlayFile(g_playlist[i], hwnd, i);
+              break;
+            }
+          }
         }
+      }
+      break;
+    }
+    case ID_SEARCH: {
+      if (wmEvent == EN_CHANGE) {
+        wchar_t buf[256] = {};
+        SendMessage(g_hwndSearch, WM_GETTEXT, 256, (LPARAM)buf);
+        g_searchFilter = buf;
+        RefreshPlaylist();
       }
       break;
     }
@@ -354,9 +382,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     WS_CHILD | WS_VISIBLE | SS_CENTER,
     530, 45, 100, 25, hwnd, NULL, hInstance, NULL);
 
+  CreateWindowEx(0, L"STATIC", L"搜索:",
+    WS_CHILD | WS_VISIBLE,
+    20, 53, 40, 20, hwnd, NULL, hInstance, NULL);
+
+  g_hwndSearch = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", NULL,
+    WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL,
+    60, 50, 250, 22, hwnd, (HMENU)ID_SEARCH, hInstance, NULL);
+
   g_hwndListbox = CreateWindowEx(WS_EX_CLIENTEDGE, L"LISTBOX", NULL,
     WS_CHILD | WS_VISIBLE | LBS_NOTIFY | WS_VSCROLL | LBS_NOINTEGRALHEIGHT,
-    20, 80, 590, 300, hwnd, (HMENU)ID_LISTBOX, hInstance, NULL);
+    20, 80, 590, 280, hwnd, (HMENU)ID_LISTBOX, hInstance, NULL);
 
   const wchar_t* envFolder = _wgetenv(L"MUSIC_FOLDER");
   if (envFolder) {

@@ -2,9 +2,8 @@
 
 ## Build
 
-```powershell
-rm -rf build; cmake -B build; cmake --build build
-```
+Debug: `cmake -B build; cmake --build build --config Debug`
+Release: `cmake -B build; cmake --build build --config Release`
 
 - Default generator: Visual Studio 17 2022
 - If switching generators, always delete `build/` first
