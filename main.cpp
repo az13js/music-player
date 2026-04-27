@@ -170,6 +170,29 @@ static void UpdateProgress(HWND hwnd) {
   }
 }
 
+static LRESULT CALLBACK TrackbarSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
+  if (uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONDBLCLK) {
+    POINT pt = { (int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam) };
+    RECT thumbRect;
+    SendMessage(hWnd, TBM_GETTHUMBRECT, 0, (LPARAM)&thumbRect);
+    if (!PtInRect(&thumbRect, pt)) {
+      RECT rc;
+      GetClientRect(hWnd, &rc);
+      int trackWidth = rc.right - rc.left;
+      if (trackWidth > 2) {
+        int percent = (pt.x * 100) / trackWidth;
+        if (percent < 0) percent = 0;
+        if (percent > 100) percent = 100;
+        SendMessage(hWnd, TBM_SETPOS, TRUE, percent);
+        HWND parent = GetParent(hWnd);
+        SendMessage(parent, WM_HSCROLL, MAKEWPARAM(TB_ENDTRACK, 0), (LPARAM)hWnd);
+      }
+      return 0;
+    }
+  }
+  return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
   switch (msg) {
   case WM_COMMAND: {
@@ -300,7 +323,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         int currentSec = (percent * g_totalLength) / 100;
         std::wstring timeText = FormatTime(currentSec) + L" / " + FormatTime(g_totalLength);
         SetWindowText(g_hwndTimeLabel, timeText.c_str());
-      } else if (code == TB_THUMBPOSITION) {
+      } else if (code == TB_THUMBPOSITION || code == TB_LINEUP || code == TB_LINEDOWN || code == TB_PAGEUP || code == TB_PAGEDOWN || code == TB_ENDTRACK) {
         g_isDragging = false;
         int percent = SendMessage(g_hwndTrackbar, TBM_GETPOS, 0, 0);
         
@@ -377,6 +400,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     20, 45, 500, 25, hwnd, (HMENU)ID_TRACKBAR, hInstance, NULL);
   SendMessage(g_hwndTrackbar, TBM_SETRANGE, TRUE, MAKELONG(0, 100));
   SendMessage(g_hwndTrackbar, TBM_SETPOS, TRUE, 0);
+  SetWindowSubclass(g_hwndTrackbar, TrackbarSubclassProc, 0, 0);
 
   g_hwndTimeLabel = CreateWindowEx(0, L"STATIC", L"00:00 / 00:00",
     WS_CHILD | WS_VISIBLE | SS_CENTER,
